@@ -194,16 +194,23 @@ function _glossify_content_process($text, $filter, $format, $langcode, $cache, $
 /**
  * Convert terms in text to links.
  *
- * @param $text
+ * @param string $text
  *   The HTML text upon which the filter is acting.
- * @param $terms
+ * @param array $terms
  *   The terms (strings) to be replaced with links.
- * @param $type
- *   'taxonomy' for linking to taxonomy terms.
- *   'content' for linking to nodes.
+ * @param string $type
+ *   The type of link to generate.
+ *   - 'taxonomy' for linking to taxonomy terms.
+ *   - 'content' for linking to nodes.
+ * @param bool $case_sensitivity
+ *   Whether the matching should be case sensitive.
+ * @param bool $first_only
+ *   Whether only the first occurrence of each term should be linked.
+ * @param bool $tooltips
+ *   Whether tooltips should be displayed for the terms.
  *
- * @return
- *   The original HTML with the term string replaced by links.
+ * @return string
+ *   The original HTML with the terms replaced by links.
  */
 function _glossify_to_links($text, $terms, $type, $case_sensitivity, $first_only, $tooltips) {
   static $recursion_protection = FALSE;
@@ -259,7 +266,12 @@ function _glossify_to_links($text, $terms, $type, $case_sensitivity, $first_only
         }
         else {
           $tip = $tooltips ? check_markup($terms[backdrop_strtolower($term_norm)]->tip, $terms[backdrop_strtolower($term_norm)]->format) : '';
-          $link->appendXML(theme('glossify_links', array('type' => $type, 'id' => $terms[backdrop_strtolower($term_norm)]->id, 'text' => $term_txt, 'tip' => $tip)));
+          $link->appendXML(theme('glossify_links', array(
+            'type' => $type,
+            'id' => $terms[backdrop_strtolower($term_norm)]->id,
+            'text' => $term_txt,
+            'tip' => $tip,
+          )));
           $matched[] = ($case_sensitivity ? $match[0] : backdrop_strtolower($match[0]));
         }
         $parent->insertBefore($link, $refnode);
@@ -285,7 +297,7 @@ function _glossify_to_links($text, $terms, $type, $case_sensitivity, $first_only
 function glossify_theme($existing, $type, $theme, $path) {
   return array(
     'glossify_links' => array(
-      'arguments' => array(
+      'variables' => array(
         'type' => NULL,
         'id' => NULL,
         'text' => NULL,
